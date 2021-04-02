@@ -2,7 +2,7 @@
 # Requires 32GB GPU
 # Adjust nproc_per_node according to how many GPUs you have
 
-CMD: "python -m torch.distributed.launch --nproc_per_node=8 train.py"
+CMD: "python -m torch.distributed.launch --nproc_per_node=1 train.py"
 
 HPARAMS: [
   {
@@ -19,7 +19,9 @@ HPARAMS: [
    max_epoch: 175,
    n_scales: "0.5,1.0,2.0",
    supervised_mscale_loss_wt: 0.05,
-   snapshot: "ASSETS_PATH/seg_weights/ocrnet.HRNet_industrious-chicken.pth",
+   local_rank: 0,
+   snapshot: "ASSETS_PATH/seg_weights/cityscapes_ocrnet.HRNet_Mscale_outstanding-turtle.pth",
+   #snapshot: "ASSETS_PATH/seg_weights/hrnetv2_w48_imagenet_pretrained.pth",
    arch: ocrnet.HRNet_Mscale,
    result_dir: LOGDIR,
    RUNX.TAG: '{arch}',

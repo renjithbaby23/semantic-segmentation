@@ -1,20 +1,15 @@
 """
 Copyright 2020 Nvidia Corporation
-
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
-
 1. Redistributions of source code must retain the above copyright notice, this
    list of conditions and the following disclaimer.
-
 2. Redistributions in binary form must reproduce the above copyright notice,
    this list of conditions and the following disclaimer in the documentation
    and/or other materials provided with the distribution.
-
 3. Neither the name of the copyright holder nor the names of its contributors
    may be used to endorse or promote products derived from this software
    without specific prior written permission.
-
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -43,7 +38,6 @@ def cities_cv_split(root, split, cv_split):
     Find cities that correspond to a given split of the data. We split the data
     such that a given city belongs to either train or val, but never both. cv0
     is defined to be the default split.
-
      all_cities = [x x x x x x x x x x x x]
      val:
        split0     [x x x                  ]
@@ -53,10 +47,8 @@ def cities_cv_split(root, split, cv_split):
        split0     [      x x x x x x x x x]
        split1     [x x x x       x x x x x]
        split2     [x x x x x x x x        ]
-
     split - train/val/test
     cv_split - 0,1,2,3
-
     cv_split == 3 means use train + val
     """
     trn_path = path.join(root, 'leftImg8bit_trainvaltest/leftImg8bit', 'train')
@@ -103,7 +95,7 @@ def coarse_cities(root):
 
 
 class Loader(BaseLoader):
-    num_classes = 19
+    num_classes = 4
     ignore_label = 255
     trainid_to_name = {}
     color_mapping = []
@@ -119,11 +111,14 @@ class Loader(BaseLoader):
         ######################################################################
         # Cityscapes-specific stuff:
         ######################################################################
+        fn = './assets/uniform_centroids/cityscapes_cv0_tile1024.json'
+        os.remove(fn) if os.path.exists(fn) else None
+
         self.root = cfg.DATASET.CITYSCAPES_DIR
         self.id_to_trainid = cityscapes_labels.label2trainid
         self.trainid_to_name = cityscapes_labels.trainId2name
         self.fill_colormap()
-        img_ext = 'png'
+        img_ext = 'jpg'
         mask_ext = 'png'
         img_root = path.join(self.root, 'leftImg8bit_trainvaltest/leftImg8bit')
         mask_root = path.join(self.root, 'gtFine_trainvaltest/gtFine')
@@ -184,7 +179,6 @@ class Loader(BaseLoader):
         """
         Find image and segmentation mask files and return a list of
         tuples of them.
-
         Inputs:
         img_root: path to parent directory of train/val/test dirs
         mask_root: path to parent directory of train/val/test dirs
@@ -207,7 +201,7 @@ class Loader(BaseLoader):
                     full_mask_fn = os.path.join(cc_path, city, mask_fn)
                     os.path.isfile(full_mask_fn)
                 else:
-                    mask_fn = f'{basename}_{fine_coarse}_labelIds{ext}'
+                    mask_fn = f'{basename}_{fine_coarse}_labelIds.{mask_ext}'
                     full_mask_fn = os.path.join(mask_root, city, mask_fn)
                 items.append((full_img_fn, full_mask_fn))
 
@@ -216,25 +210,7 @@ class Loader(BaseLoader):
         return items
 
     def fill_colormap(self):
-        palette = [128, 64, 128,
-                   244, 35, 232,
-                   70, 70, 70,
-                   102, 102, 156,
-                   190, 153, 153,
-                   153, 153, 153,
-                   250, 170, 30,
-                   220, 220, 0,
-                   107, 142, 35,
-                   152, 251, 152,
-                   70, 130, 180,
-                   220, 20, 60,
-                   255, 0, 0,
-                   0, 0, 142,
-                   0, 0, 70,
-                   0, 60, 100,
-                   0, 80, 100,
-                   0, 0, 230,
-                   119, 11, 32]
+        palette = [234, 30, 39, 101, 190, 110, 24, 92, 163, 224, 212, 28]
         zero_pad = 256 * 3 - len(palette)
         for i in range(zero_pad):
             palette.append(0)

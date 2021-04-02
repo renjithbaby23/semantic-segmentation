@@ -1,6 +1,6 @@
 # Run Evaluation on Cityscapes with a pretrained model
 
-CMD: "python -m torch.distributed.launch --nproc_per_node=8 train.py"
+CMD: "python -m torch.distributed.launch --nproc_per_node=1 train.py"
 
 HPARAMS: [
   {
@@ -12,7 +12,11 @@ HPARAMS: [
    bs_val: 2,
    eval: val,
    n_scales: "0.5,1.0,2.0",
-   snapshot: "ASSETS_PATH/seg_weights/cityscapes_ocrnet.HRNet_Mscale_outstanding-turtle.pth",
+   snapshot: "/home/cgiuser/renjith/segmentation/hrnet/logs/train_cityscapes/baseline/best_checkpoint_ep165.pth",
+   # snapshot: "/home/cgiuser/renjith/segmentation/hrnet/logs/train_cityscapes/model1/best_checkpoint_ep157.pth",
+   # snapshot: "/home/cgiuser/renjith/segmentation/hrnet/logs/train_cityscapes/model2/best_checkpoint_ep38.pth",
+   local_rank: 0,
+
    arch: ocrnet.HRNet_Mscale,
    result_dir: LOGDIR,
   },

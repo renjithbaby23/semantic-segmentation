@@ -43,13 +43,12 @@ import torch
 from utils.attr_dict import AttrDict
 from runx.logx import logx
 
-
 __C = AttrDict()
 cfg = __C
 __C.GLOBAL_RANK = 0
 __C.EPOCH = 0
 # Absolute path to a location to keep some large files, not in this dir.
-__C.ASSETS_PATH = '/home/dcg-adlr-atao-data.cosmos277/assets'
+__C.ASSETS_PATH = '/home/cgiuser/renjith/segmentation/hrnet/assets/'
 
 # Use class weighted loss per batch to increase loss for low pixel count classes per batch
 __C.BATCH_WEIGHTING = False
@@ -76,9 +75,9 @@ __C.TRAIN.FP16 = False
 __C.DATASET = AttrDict()
 #Cityscapes Dir Location
 __C.DATASET.CITYSCAPES_DIR = \
-  os.path.join(__C.ASSETS_PATH, 'data/Cityscapes')
+  os.path.join(__C.ASSETS_PATH, 'data')
 __C.DATASET.CITYSCAPES_CUSTOMCOARSE = \
-  os.path.join(__C.ASSETS_PATH, 'data/Cityscapes/autolabelled')
+  os.path.join(__C.ASSETS_PATH, 'data/autolabelled')
 __C.DATASET.CENTROID_ROOT = \
   os.path.join(__C.ASSETS_PATH, 'uniform_centroids')
 #SDC Augmented Cityscapes Dir Location
@@ -95,8 +94,8 @@ __C.DATASET.CAMVID_DIR = ''
 __C.DATASET.CITYSCAPES_SPLITS = 3
 __C.DATASET.MEAN = [0.485, 0.456, 0.406]
 __C.DATASET.STD = [0.229, 0.224, 0.225]
-__C.DATASET.NAME = ''
-__C.DATASET.NUM_CLASSES = 0
+__C.DATASET.NAME = 'aira'
+__C.DATASET.NUM_CLASSES = 4
 __C.DATASET.IGNORE_LABEL = 255
 __C.DATASET.DUMP_IMAGES = False
 __C.DATASET.CLASS_UNIFORM_PCT = 0.5
@@ -146,6 +145,7 @@ __C.MODEL.X71_CHECKPOINT = \
     os.path.join(WEIGHTS_PATH, 'aligned_xception71.pth')
 __C.MODEL.HRNET_CHECKPOINT = \
     os.path.join(WEIGHTS_PATH, 'hrnetv2_w48_imagenet_pretrained.pth')
+    # os.path.join(WEIGHTS_PATH, 'cityscapes_ocrnet.HRNet_Mscale_outstanding-turtle.pth')
 
 __C.LOSS = AttrDict()
 # Weight for OCR aux loss
@@ -380,3 +380,4 @@ def update_dataset_inst(dataset_inst):
     cfg.immutable(False)
     cfg.DATASET_INST = dataset_inst
     cfg.immutable(True)
+

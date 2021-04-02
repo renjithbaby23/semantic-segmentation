@@ -14,7 +14,7 @@ HPARAMS: [
    amp_opt_level: O3,
    n_scales: "0.25,0.5,1.0,2.0",
    do_flip: true,
-   snapshot: "ASSETS_PATH/seg_weights/mapillary_ocrnet.HRNet_Mscale_fast-rattlesnake.pth",
+   snapshot: "/home/cgiuser/renjith/segmentation/hrnet/logs/train_cityscapes/baseline/best_checkpoint_ep165.pth",
    arch: ocrnet.HRNet_Mscale,
    result_dir: LOGDIR,
   },

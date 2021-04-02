@@ -1,20 +1,15 @@
 """
 Copyright 2020 Nvidia Corporation
-
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
-
 1. Redistributions of source code must retain the above copyright notice, this
    list of conditions and the following disclaimer.
-
 2. Redistributions in binary form must reproduce the above copyright notice,
    this list of conditions and the following disclaimer in the documentation
    and/or other materials provided with the distribution.
-
 3. Neither the name of the copyright holder nor the names of its contributors
    may be used to endorse or promote products derived from this software
    without specific prior written permission.
-
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -129,12 +124,12 @@ parser.add_argument('--max_cu_epoch', type=int, default=150,
                     help='Class Uniform Max Epochs')
 parser.add_argument('--start_epoch', type=int, default=0)
 parser.add_argument('--color_aug', type=float,
-                    default=0.25, help='level of color augmentation')
+                    default=0.2, help='level of color augmentation')
 parser.add_argument('--gblur', action='store_true', default=False,
                     help='Use Guassian Blur Augmentation')
 parser.add_argument('--bblur', action='store_true', default=False,
                     help='Use Bilateral Blur Augmentation')
-parser.add_argument('--brt_aug', action='store_true', default=False,
+parser.add_argument('--brt_aug', action='store_true', default=True,
                     help='Use brightness augmentation')
 parser.add_argument('--lr_schedule', type=str, default='poly',
                     help='name of lr schedule: poly')
@@ -142,7 +137,7 @@ parser.add_argument('--poly_exp', type=float, default=1.0,
                     help='polynomial LR exponent')
 parser.add_argument('--poly_step', type=int, default=110,
                     help='polynomial epoch step')
-parser.add_argument('--bs_trn', type=int, default=2,
+parser.add_argument('--bs_trn', type=int, default=4,
                     help='Batch size for training per gpu')
 parser.add_argument('--bs_val', type=int, default=1,
                     help='Batch size for Validation per gpu')
@@ -214,7 +209,7 @@ parser.add_argument('--amp_opt_level', default='O1', type=str,
 parser.add_argument('--rand_augment', default=None,
                     help='RandAugment setting: set to \'N,M\'')
 parser.add_argument('--init_decoder', default=False, action='store_true',
-                    help='initialize decoder with kaiming normal')
+        help='initialize decoder with kaiming normal')
 parser.add_argument('--dump_topn', type=int, default=0,
                     help='Dump worst val images')
 parser.add_argument('--dump_assets', action='store_true',
@@ -268,8 +263,6 @@ parser.add_argument('--supervised_mscale_loss_wt', type=float, default=None,
                     help='weighting for the supervised loss')
 parser.add_argument('--ocr_aux_loss_rmi', action='store_true', default=False,
                     help='allow rmi for aux loss')
-
-
 args = parser.parse_args()
 args.best_record = {'epoch': -1, 'iter': 0, 'val_loss': 1e10, 'acc': 0,
                     'acc_cls': 0, 'mean_iu': 0, 'fwavacc': 0}

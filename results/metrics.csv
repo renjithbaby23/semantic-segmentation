@@ -1,0 +1,2 @@
+start,start/step,0,timestamp,1617389466.7811298
+val,loss,0.1291041225194931,mean_iu,0.92486453,acc_cls,0.9645399,acc,0.96311605,mean_dice,0.96090597,epoch,0,timestamp,1617389493.7344422

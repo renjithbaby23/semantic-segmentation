@@ -82,7 +82,8 @@ def calculate_iou(hist_data):
     divisor = hist_data.sum(axis=1) + hist_data.sum(axis=0) - \
         np.diag(hist_data)
     iu = np.diag(hist_data) / divisor
-    return iu, acc, acc_cls
+    dice = np.diag(hist_data) * 2 / (hist_data.sum(axis=1) + hist_data.sum(axis=0))
+    return iu, acc, acc_cls, dice
 
 
 def tensor_to_pil(img):
@@ -119,20 +120,22 @@ def eval_metrics(iou_acc, args, net, optim, val_loss, epoch, mf_score=None):
         return
 
     hist = iou_per_scale[args.default_scale]
-    iu, acc, acc_cls = calculate_iou(hist)
+    iu, acc, acc_cls, dice = calculate_iou(hist)
     iou_per_scale = {args.default_scale: iu}
 
     # calculate iou for other scales
     for scale in scales:
         if scale != args.default_scale:
-            iou_per_scale[scale], _, _ = calculate_iou(iou_per_scale[scale])
+            iou_per_scale[scale], _, _, _ = calculate_iou(iou_per_scale[scale])
 
     print_evaluate_results(hist, iu, epoch=epoch,
                            iou_per_scale=iou_per_scale,
-                           log_multiscale_tb=args.log_msinf_to_tb)
+                           log_multiscale_tb=args.log_msinf_to_tb, 
+                           dice=dice)
 
     freq = hist.sum(axis=1) / hist.sum()
     mean_iu = np.nanmean(iu)
+    mean_dice = np.nanmean(dice)
     fwavacc = (freq[freq > 0] * iu[freq > 0]).sum()
 
     metrics = {
@@ -140,9 +143,10 @@ def eval_metrics(iou_acc, args, net, optim, val_loss, epoch, mf_score=None):
         'mean_iu': mean_iu,
         'acc_cls': acc_cls,
         'acc': acc,
+        'mean_dice': mean_dice,
     }
     logx.metric('val', metrics, epoch)
-    logx.msg('Mean: {:2.2f}'.format(mean_iu * 100))
+    logx.msg('Mean iU_1: {:2.2f}\tMean Dice: {:2.2f}'.format(mean_iu * 100, mean_dice *100))
 
     save_dict = {
         'epoch': epoch,
@@ -151,6 +155,7 @@ def eval_metrics(iou_acc, args, net, optim, val_loss, epoch, mf_score=None):
         'state_dict': net.state_dict(),
         'optimizer': optim.state_dict(),
         'mean_iu': mean_iu,
+        'mean_dice': mean_dice,
         'command': ' '.join(sys.argv[1:])
     }
     logx.save_model(save_dict, metric=mean_iu, epoch=epoch)
@@ -166,35 +171,36 @@ def eval_metrics(iou_acc, args, net, optim, val_loss, epoch, mf_score=None):
         args.best_record['acc_cls'] = acc_cls
         args.best_record['fwavacc'] = fwavacc
         args.best_record['mean_iu'] = mean_iu
+        args.best_record['mean_dice'] = mean_dice
         args.best_record['epoch'] = epoch
 
     logx.msg('-' * 107)
     if mf_score is None:
         fmt_str = ('{:5}: [epoch {}], [val loss {:0.5f}], [acc {:0.5f}], '
-                   '[acc_cls {:.5f}], [mean_iu {:.5f}], [fwavacc {:0.5f}]')
+                '[acc_cls {:.5f}], [mean_iu {:.5f}], [mean_dice {:.5f}], [fwavacc {:0.5f}]')
         current_scores = fmt_str.format('this', epoch, val_loss.avg, acc,
-                                        acc_cls, mean_iu, fwavacc)
+                                        acc_cls, mean_iu, mean_dice, fwavacc)
         logx.msg(current_scores)
         best_scores = fmt_str.format(
             'best',
             args.best_record['epoch'], args.best_record['val_loss'],
             args.best_record['acc'], args.best_record['acc_cls'],
-            args.best_record['mean_iu'], args.best_record['fwavacc'])
+            args.best_record['mean_iu'],args.best_record['mean_dice'],  args.best_record['fwavacc'])
         logx.msg(best_scores)
     else:
         fmt_str = ('{:5}: [epoch {}], [val loss {:0.5f}], [mask f1 {:.5f} ] '
                    '[acc {:0.5f}], '
-                   '[acc_cls {:.5f}], [mean_iu {:.5f}], [fwavacc {:0.5f}]')
+                   '[acc_cls {:.5f}], [mean_iu {:.5f}], [mean_dice {:.5f}], [fwavacc {:0.5f}]')
         current_scores = fmt_str.format('this', epoch, val_loss.avg,
                                         mf_score.avg, acc,
-                                        acc_cls, mean_iu, fwavacc)
+                                        acc_cls, mean_iu, mean_dice, fwavacc)
         logx.msg(current_scores)
         best_scores = fmt_str.format(
             'best',
             args.best_record['epoch'], args.best_record['val_loss'],
             args.best_record['mask_f1_score'],
             args.best_record['acc'], args.best_record['acc_cls'],
-            args.best_record['mean_iu'], args.best_record['fwavacc'])
+            args.best_record['mean_iu'], args.best_record['mean_dice'],  args.best_record['fwavacc'])
         logx.msg(best_scores)
     logx.msg('-' * 107)
 
@@ -418,7 +424,7 @@ class ImageDumper():
 
 
 def print_evaluate_results(hist, iu, epoch=0, iou_per_scale=None,
-                           log_multiscale_tb=False):
+                           log_multiscale_tb=False, dice=None):
     """
     If single scale:
        just print results for default scale
@@ -441,7 +447,7 @@ def print_evaluate_results(hist, iu, epoch=0, iou_per_scale=None,
 
     header = ['Id', 'label']
     header.extend(['iU_{}'.format(scale) for scale in iou_per_scale])
-    header.extend(['TP', 'FP', 'FN', 'Precision', 'Recall'])
+    header.extend(['TP', 'FP', 'FN', 'Precision', 'Recall', 'Dice'])
 
     tabulate_data = []
 
@@ -459,6 +465,7 @@ def print_evaluate_results(hist, iu, epoch=0, iou_per_scale=None,
         class_data.append(iu_FN[class_id] / iu_TP[class_id])
         class_data.append(iu_TP[class_id] / (iu_TP[class_id] + iu_FP[class_id]))
         class_data.append(iu_TP[class_id] / (iu_TP[class_id] + iu_FN[class_id]))
+        class_data.append(dice[class_id]*100)
         tabulate_data.append(class_data)
 
         if log_multiscale_tb:
